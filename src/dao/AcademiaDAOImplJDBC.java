@@ -6,6 +6,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -15,7 +16,7 @@ import entidades.Matricula;
 
 public class AcademiaDAOImplJDBC implements AcademiaDAO {
 	// Cadena de conexión predeterminada
-		private String URLConexion = new String("jdbc:mysql://tu_IP:3306/dbformacion?user=dam2a&password=secreto");
+		private String URLConexion = new String("jdbc:mysql://localhost:3306/dbformacion?user=dam2a&password=secreto");
 		
 		/*
 		 * SQL
@@ -326,38 +327,171 @@ public class AcademiaDAOImplJDBC implements AcademiaDAO {
 
 		@Override
 		public Collection<Matricula> cargarMatriculas() {
-			// TODO Auto-generated method stub
-			return null;
+			
+			Collection<Matricula> matriculas = new ArrayList<Matricula>();
+
+			try (PreparedStatement ps = getConnection().prepareStatement(FIND_ALL_ALUMNOS_SQL);) {
+
+				ResultSet rs = ps.executeQuery();	
+				
+				while (rs.next()) {
+					int id= rs.getInt(1);				
+					int alumnoId = rs.getInt(2);
+					int cursoId = rs.getInt(3);
+					LocalDate fecha = rs.getDate(4).toLocalDate();
+					
+					
+					matriculas.add(new Matricula(id,alumnoId, cursoId, fecha));
+				}
+			} catch (SQLException e) {
+				for (Throwable t : e) {
+					System.err.println("Error: " + t);
+				}
+			} finally {
+				try {
+					releaseConnection(getConnection());
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
+			
+			return matriculas;
 		}
 
 		@Override
 		public long getIdMatricula(int idAlumno, int idCurso) {
-			// TODO Auto-generated method stub
-			return 0;
+			String sql = "SELECT id_matricula FROM matriculas WHERE id_alumno = ? AND id_curso = ?";
+			
+			long matricula = 0;
+
+			try (PreparedStatement ps = getConnection().prepareStatement(sql)){
+				
+				ps.setInt(1, idAlumno);
+				ps.setInt(2, idCurso);
+				
+				ResultSet res = ps.executeQuery();
+				
+				matricula = res.getLong("id_matricula");
+				
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} finally {
+				try {
+					releaseConnection(getConnection());
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
+			
+			return matricula;
 		}
 
 		@Override
 		public Matricula getMatricula(long idMatricula) {
-			// TODO Auto-generated method stub
-			return null;
+			String sql = "SELECT * FROM matriculas WHERE id_matricula = ?";
+			Matricula matricula = null;
+
+			try (PreparedStatement ps = getConnection().prepareStatement(sql)){
+				
+				ps.setLong(1, idMatricula);
+				
+				ResultSet res = ps.executeQuery();
+			
+				matricula = new Matricula(res.getInt("id_matricula"), res.getInt("id_alumno"), res.getInt("id_curso"), res.getDate("fecha_inicio").toLocalDate());
+				
+			} catch (SQLException e) {
+				e.printStackTrace();
+			} finally {
+				try {
+					releaseConnection(getConnection());
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
+			
+			return matricula;
 		}
 
 		@Override
 		public int grabarMatricula(Matricula matricula) {
-			// TODO Auto-generated method stub
-			return 0;
+			String sql = "INSERT INTO matriculas (id_matricula, id_alumno, id_curso, fecha_inicio) VALUES (?,?,?,?);";
+			int changed = 0;
+
+			try (PreparedStatement ps = getConnection().prepareStatement(sql)){
+				
+				ps.setInt(1, matricula.getIdMatricula());
+				ps.setInt(2, matricula.getAlumnoID());
+				ps.setInt(3, matricula.getCursoID());
+				ps.setDate(4, java.sql.Date.valueOf(matricula.getFecha()));
+				
+				changed = ps.executeUpdate();
+				
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} finally {
+				try {
+					releaseConnection(getConnection());
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
+			
+			return changed;
 		}
 
 		@Override
 		public int actualizarMatricula(Matricula matricula) {
-			// TODO Auto-generated method stub
-			return 0;
+			String sql = "UPDATE matriculas SET id_alumno = ?, id_curso = ?, fecha_inicio = ?  WHERE id_matricula = ?;";
+			int changed = 0;
+
+			try (PreparedStatement ps = getConnection().prepareStatement(sql)){
+				
+				ps.setInt(1, matricula.getAlumnoID());
+				ps.setInt(2, matricula.getCursoID());
+				ps.setDate(3, java.sql.Date.valueOf(matricula.getFecha()));
+				ps.setInt(4, matricula.getIdMatricula());
+				
+				changed = ps.executeUpdate();
+				
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} finally {
+				try {
+					releaseConnection(getConnection());
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
+			
+			return changed;
 		}
 
 		@Override
 		public int borrarMatricula(long idMatricula) {
-			// TODO Auto-generated method stub
-			return 0;
+			String sql = "DELETE FROM matriculas WHERE id_curso = ?;";
+			int changed = 0;
+
+			try (PreparedStatement ps = getConnection().prepareStatement(sql)){
+				
+				ps.setLong(1, idMatricula);
+				
+				changed = ps.executeUpdate();
+				
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} finally {
+				try {
+					releaseConnection(getConnection());
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
+			
+			return changed;
 		}
 		
 
