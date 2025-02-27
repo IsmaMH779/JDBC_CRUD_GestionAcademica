@@ -21,6 +21,12 @@ public class Matricula implements Serializable{
 		this.cursoID = cursoID;
 		this.fecha = fecha;
 	}
+	
+	public Matricula(int alumnoID, int cursoID, LocalDate fecha) {
+		this.alumnoID = alumnoID;
+		this.cursoID = cursoID;
+		this.fecha = fecha;
+	}
 
 	public int getIdMatricula() {
 		return idMatricula;

@@ -5,7 +5,6 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -16,13 +15,14 @@ import entidades.Matricula;
 
 public class AcademiaDAOImplJDBC implements AcademiaDAO {
 	// Cadena de conexión predeterminada
-		private String URLConexion = new String("jdbc:mysql://localhost:3306/dbformacion?user=dam2a&password=secreto");
-		
+		private String URLConexion = new String("jdbc:mysql://172.16.0.11:3306/dbformacion");
+		private String username = "dam2a";
+		private String password = "supersecreto";
 		/*
 		 * SQL
 		 */
 		private static final String FIND_ALL_ALUMNOS_SQL = "select id_alumno, nombre_alumno from alumnos";
-
+		
 	/*
 		 * CONSTRUCTORES
 		 */
@@ -41,7 +41,7 @@ public class AcademiaDAOImplJDBC implements AcademiaDAO {
 		
 		// Obtener la conexión
 		private Connection getConnection() throws SQLException {
-			return DriverManager.getConnection(URLConexion);
+			return DriverManager.getConnection(URLConexion, username, password);
 		}
 
 		// Liberar la conexión
@@ -99,7 +99,10 @@ public class AcademiaDAOImplJDBC implements AcademiaDAO {
 				
 				ResultSet res = ps.executeQuery();
 				
-				alumno = new Alumno(res.getInt("id_alumno"), res.getString("nombre_alumno"));
+				if (res.next()) {
+					alumno = new Alumno(res.getInt("id_alumno"), res.getString("nombre_alumno"));
+				} 
+				
 				
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
@@ -195,8 +198,9 @@ public class AcademiaDAOImplJDBC implements AcademiaDAO {
 		@Override
 		public Collection<Curso> cargarCursos() {
 			Collection<Curso> cursos = new ArrayList<Curso>();
-
-			try (PreparedStatement ps = getConnection().prepareStatement(FIND_ALL_ALUMNOS_SQL);) {
+			String sql = "Select * from cursos;";
+			
+			try (PreparedStatement ps = getConnection().prepareStatement(sql);) {
 
 				ResultSet rs = ps.executeQuery();	
 				
@@ -233,7 +237,10 @@ public class AcademiaDAOImplJDBC implements AcademiaDAO {
 				
 				ResultSet res = ps.executeQuery();
 				
-				curso = new Curso(res.getInt("id_curso"), res.getString("nombre_curso"));
+				if (res.next()) {
+					curso = new Curso(res.getInt("id_curso"), res.getString("nombre_curso"));	
+				}
+				
 				
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
@@ -327,10 +334,10 @@ public class AcademiaDAOImplJDBC implements AcademiaDAO {
 
 		@Override
 		public Collection<Matricula> cargarMatriculas() {
-			
 			Collection<Matricula> matriculas = new ArrayList<Matricula>();
-
-			try (PreparedStatement ps = getConnection().prepareStatement(FIND_ALL_ALUMNOS_SQL);) {
+			String sql = "Select * from matriculas;";
+			
+			try (PreparedStatement ps = getConnection().prepareStatement(sql);) {
 
 				ResultSet rs = ps.executeQuery();	
 				
@@ -371,7 +378,11 @@ public class AcademiaDAOImplJDBC implements AcademiaDAO {
 				
 				ResultSet res = ps.executeQuery();
 				
-				matricula = res.getLong("id_matricula");
+				if (res.next()) {
+					matricula = res.getLong("id_matricula");
+				}
+				
+				
 				
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
@@ -397,8 +408,11 @@ public class AcademiaDAOImplJDBC implements AcademiaDAO {
 				ps.setLong(1, idMatricula);
 				
 				ResultSet res = ps.executeQuery();
-			
-				matricula = new Matricula(res.getInt("id_matricula"), res.getInt("id_alumno"), res.getInt("id_curso"), res.getDate("fecha_inicio").toLocalDate());
+				
+				if (res.next()) {
+					matricula = new Matricula(res.getInt("id_matricula"), res.getInt("id_alumno"), res.getInt("id_curso"), res.getDate("fecha_inicio").toLocalDate());
+				}
+				
 				
 			} catch (SQLException e) {
 				e.printStackTrace();
@@ -415,15 +429,14 @@ public class AcademiaDAOImplJDBC implements AcademiaDAO {
 
 		@Override
 		public int grabarMatricula(Matricula matricula) {
-			String sql = "INSERT INTO matriculas (id_matricula, id_alumno, id_curso, fecha_inicio) VALUES (?,?,?,?);";
+			String sql = "INSERT INTO matriculas ( id_alumno, id_curso, fecha_inicio) VALUES (?,?,?);";
 			int changed = 0;
 
 			try (PreparedStatement ps = getConnection().prepareStatement(sql)){
 				
-				ps.setInt(1, matricula.getIdMatricula());
-				ps.setInt(2, matricula.getAlumnoID());
-				ps.setInt(3, matricula.getCursoID());
-				ps.setDate(4, java.sql.Date.valueOf(matricula.getFecha()));
+				ps.setInt(1, matricula.getAlumnoID());
+				ps.setInt(2, matricula.getCursoID());
+				ps.setDate(3, java.sql.Date.valueOf(matricula.getFecha()));
 				
 				changed = ps.executeUpdate();
 				
