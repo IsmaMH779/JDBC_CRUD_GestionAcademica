@@ -484,7 +484,7 @@ public class AcademiaDAOImplJDBC implements AcademiaDAO {
 
 		@Override
 		public int borrarMatricula(long idMatricula) {
-			String sql = "DELETE FROM matriculas WHERE id_curso = ?;";
+			String sql = "DELETE FROM matriculas WHERE id_matricula = ?;";
 			int changed = 0;
 
 			try (PreparedStatement ps = getConnection().prepareStatement(sql)){

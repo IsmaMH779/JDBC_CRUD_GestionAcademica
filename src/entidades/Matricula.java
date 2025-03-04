@@ -65,5 +65,4 @@ public class Matricula implements Serializable{
 		return this.idMatricula + " - ";
 	}
 		
-	
 }

@@ -22,6 +22,7 @@ public class BorrarHelper {
         System.out.println("\nBorrando cualquier matricula previa...");
         
         Collection<Matricula> matriculas = dao.cargarMatriculas();
+        
         for (Matricula matricula : matriculas) {
             if (dao.borrarMatricula(matricula.getIdMatricula()) == 1) {
                 System.out.println("Se ha borrado la matricula con ID: " + matricula.getIdMatricula());
